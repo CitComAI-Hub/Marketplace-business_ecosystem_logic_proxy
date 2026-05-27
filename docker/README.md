@@ -140,3 +140,21 @@ To create the image, from the project directory:
     docker build -t biz-ecosystem-logic-proxy  -f docker/Dockerfile .
 
 The parameter `-t biz-ecosystem-logic-proxy` gives the image a name. This name could be anything, or even include an organization like `-t fiware/biz-ecosystem-logic-proxy`. This name is later used to run the container based on the image.
+
+---
+
+# Custom image for CITCOM Marketplace
+
+```bash
+docker build -t test_citcom-marketplace:v0.3 -f docker/Dockerfile .
+```
+
+```bash
+cd docker
+docker compose up
+```
+
+```bash
+docker tag test_citcom-marketplace:v0.3 ghcr.io/citcomai-hub/citcom-marketplace:v0.6 
+docker push ghcr.io/citcomai-hub/citcom-marketplace:v0.6
+```
