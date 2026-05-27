@@ -7,3 +7,11 @@ xunit.xml
 /indexes
 .DS_Store
 .idea
+
+# ignora todo el contenido de las carpetas docker/proxy-data y docker/proxy-locales y proxy-static menos los archivos .gitkeep
+docker/proxy-data/*
+!docker/proxy-data/.gitkeep
+docker/proxy-locales/*
+!docker/proxy-locales/.gitkeep
+docker/proxy-static/*
+!docker/proxy-static/.gitkeep
