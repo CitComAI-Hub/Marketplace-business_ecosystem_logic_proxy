@@ -1,14 +1,13 @@
-version: "3"
 services:
     mongo:
         image: mongo:6.0
         ports:
             - 27017:27017
         volumes:
-            - ./proxy-data:/data/db
+            - mongo-data:/data/db
 
     proxy:
-        image: test_citcom-marketplace:v0.3
+        image: test_citcom-marketplace:v0.8
         links:
             - mongo
         depends_on:
@@ -59,3 +58,10 @@ services:
             # - BAE_LP_ENDPOINT_CATALOG_SECURED=false
             # ...
             - BAE_LP_DATASPACE_ENABLED=true # Whether the dataspaces management is enabled in the BAE
+
+            - BAE_LP_DOME_REGISTER=https://onboarding.citcom-vrain-dataspace.eu/ # "Register here" button on the dashboard
+            - BAE_LP_DOME_REGISTER_CUSTOMER=https://onboarding.citcom-vrain-dataspace.eu/ # Customer registration link
+            - BAE_LP_DOME_REGISTRATION_FORM=https://onboarding.citcom-vrain-dataspace.eu/ # "Register" link in footer/header
+
+volumes:
+    mongo-data:
