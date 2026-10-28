@@ -18,6 +18,7 @@
  * [API Reference](#api-reference)
  * [Testing](#testing)
  * [Advanced Topics](#advanced-topics)
+ * [CITCOM Marketplace Docker Image](#citcom-marketplace-docker-image)
 
 # Introduction
 
@@ -63,4 +64,8 @@ npm test
 
 You can also find this documentation on [ReadTheDocs](http://business-api-ecosystem.readthedocs.io)
 
+# CITCOM Marketplace Docker Image
 
+This fork publishes a custom image with the CITCOM theme to [ghcr.io/citcomai-hub/citcom-marketplace](https://github.com/orgs/CitComAI-Hub/packages/container/package/citcom-marketplace). The image is built automatically by GitHub Actions when a tag is pushed (the same tag is used as the image version), combining this repo with the [vrain_BAE-Frontend](https://github.com/CitComAI-Hub/vrain_BAE-Frontend) build.
+
+See [Custom image for CITCOM Marketplace](docker/README.md#custom-image-for-citcom-marketplace) for how it works, how to publish a new version and how to build it manually.

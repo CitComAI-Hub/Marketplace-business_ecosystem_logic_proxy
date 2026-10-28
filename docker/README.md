@@ -145,16 +145,71 @@ The parameter `-t biz-ecosystem-logic-proxy` gives the image a name. This name c
 
 # Custom image for CITCOM Marketplace
 
+## Automatic image publishing (GitHub Actions)
+
+The image is built and published automatically by the [publish-citcom.yml](../.github/workflows/publish-citcom.yml) workflow. The result is stored in the GitHub registry: [ghcr.io/citcomai-hub/citcom-marketplace](https://github.com/orgs/CitComAI-Hub/packages/container/package/citcom-marketplace).
+
+### How it works
+
+The image depends on two repositories:
+
+- **This repo** (`Marketplace-business_ecosystem_logic_proxy`): the proxy and the `Dockerfile`.
+- **[vrain_BAE-Frontend](https://github.com/CitComAI-Hub/vrain_BAE-Frontend)**: the frontend with the CITCOM theme. It has to be compiled and the output copied into `docker/proxy-themes/bae-frontend`, which the `Dockerfile` includes in the image.
+
+When a tag is pushed, the workflow does the following:
+
+1. Checks that the tagged commit belongs to the `feat/citcom` branch. If not, it fails without publishing anything.
+2. Clones `vrain_BAE-Frontend` at the **tag with the same name**.
+3. Builds the frontend with `docker compose run --rm build-frontend`, which generates `dist/bae-frontend`.
+4. Replaces `docker/proxy-themes/bae-frontend` with that output.
+5. Builds the image with `docker/Dockerfile` (`linux/amd64` and `linux/arm64`).
+6. Publishes it as `ghcr.io/citcomai-hub/citcom-marketplace:<tag>`.
+
+The workflow runs **only** when a tag is created. Pushing to a branch does not publish anything.
+
+### Publishing a new version
+
+1. Push your changes to `feat/citcom` in both repos. Frontend changes must be in its repo before step 2.
+2. Create the tag in the **frontend** repo and push it:
+
+   ```bash
+   cd vrain_BAE-Frontend
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+3. Create a tag with the **same name** in this repo, on a commit of `feat/citcom` that has already been pushed, and push it:
+
+   ```bash
+   cd Marketplace-business_ecosystem_logic_proxy
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+4. Follow the run in the *Actions* tab of this repo. When it finishes, the image is available in the registry as `citcom-marketplace:v1.2.0`.
+
+The tag name is the image version. A published tag should never be moved or reused: if something goes wrong, create a new one (e.g. `v1.2.1`).
+
+### Requirements and common problems
+
+- **The frontend tag must exist before the proxy tag.** Otherwise the frontend checkout step fails.
+- **Tag not in `feat/citcom`**: the tag points to a commit that is not in `feat/citcom`, or the branch was pushed after the tag.
+- **`denied: permission_denied: write_package`**: this repo has no write access to the package. In the package settings (*Manage Actions access*), add this repo with the *Write* role. This is done only once.
+- **Private frontend repo**: the automatic `GITHUB_TOKEN` cannot read other repos. Store a token with read access to `vrain_BAE-Frontend` as the `FRONTEND_REPO_TOKEN` secret in this repo or in the organization. It is configured once by one person and works for everyone.
+- **Changing the branch or the frontend repo**: they are set in `PROXY_BRANCH` and `FRONTEND_REPO` at the top of the workflow.
+
+### Manual build (without the workflow)
+
+To build the image locally:
+
 ```bash
+# 1. Build the frontend (in vrain_BAE-Frontend)
+docker compose run --rm build-frontend
+
+# 2. Copy the output into this repo
+rm -rf docker/proxy-themes/bae-frontend
+cp -r ../vrain_BAE-Frontend/dist/bae-frontend docker/proxy-themes/bae-frontend
+
+# 3. Build the image
 docker build -t test_citcom-marketplace:v0.3 -f docker/Dockerfile .
-```
-
-```bash
-cd docker
-docker compose up
-```
-
-```bash
-docker tag test_citcom-marketplace:v0.3 ghcr.io/citcomai-hub/citcom-marketplace:v0.6 
-docker push ghcr.io/citcomai-hub/citcom-marketplace:v0.6
 ```
