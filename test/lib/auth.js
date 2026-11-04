@@ -471,6 +471,80 @@ describe('Auth lib', function () {
     }).catch(done.fail);
   });
 
+  it('authMiddleware drops a stale session and goes on anonymously when only the cookie is sent', function (done) {
+    const stubs = makeStubs();
+    const { auth, authMiddleware } = loadSUT(stubs);
+
+    auth({ provider: 'fiware' }).then(function ({ STRATEGY }) {
+      // A session whose token expired and cannot be refreshed (wallet logins have no refresh token)
+      const expired = Math.floor(Date.now() / 1000) - 60;
+      spyOn(STRATEGY, 'refresh').and.callFake(function (refreshToken, cb) {
+        cb(new Error('no refresh token'));
+      });
+
+      const mw = authMiddleware({ local: { STRATEGY } });
+      const saveSpy = jasmine.createSpy('save').and.callFake(function (cb) { cb && cb(); });
+      const req = {
+        headers: {},
+        user: Object.assign(baseProfile({ expire: expired }), { accessToken: 'TOKEN-OLD', refreshToken: '', idp: 'local' }),
+        session: { passport: { user: { id: 'u' } }, save: saveSpy },
+      };
+      const res = {};
+
+      mw.headerAuthentication(req, res, function () {
+        try {
+          expect(req.user).toBeUndefined();
+          expect(req.session.passport.user).toBeUndefined();
+          expect(saveSpy).toHaveBeenCalled();
+          expect(stubs.utilsStub.sendUnauthorized).not.toHaveBeenCalled();
+          done();
+        } catch (e) {
+          done.fail(e);
+        }
+      });
+    }).catch(done.fail);
+  });
+
+  it('authMiddleware keeps the 401 when the refresh fails for a request with a token', function (done) {
+    const stubs = makeStubs();
+    const { auth, authMiddleware } = loadSUT(stubs);
+
+    auth({ provider: 'fiware' }).then(function ({ STRATEGY }) {
+      const expired = Math.floor(Date.now() / 1000) - 60;
+      spyOn(STRATEGY, 'refresh').and.callFake(function (refreshToken, cb) {
+        cb(new Error('no refresh token'));
+      });
+
+      const mw = authMiddleware({ local: { STRATEGY } });
+      const req = {
+        headers: { authorization: 'Bearer TOKEN-OLD' },
+        user: Object.assign(baseProfile({ expire: expired }), { accessToken: 'TOKEN-OLD', refreshToken: '', idp: 'local' }),
+        session: { passport: {}, save: function (cb) { cb && cb(); } },
+      };
+      const res = {};
+      const next = jasmine.createSpy('next');
+
+      mw.headerAuthentication(req, res, next);
+      setTimeout(function () {
+        try {
+          expect(next).not.toHaveBeenCalled();
+          expect(res.statusCode).toBe(401);
+          done();
+        } catch (e) {
+          done.fail(e);
+        }
+      }, 50);
+    }).catch(done.fail);
+  });
+
+  it('authMiddleware.checkOrganizations goes on when the profile is no longer cached', function (done) {
+    const stubs = makeStubs();
+    const { authMiddleware } = loadSUT(stubs);
+    const mw = authMiddleware({});
+    const req = { user: { accessToken: 'NOT-IN-CACHE' } };
+    Promise.resolve(mw.checkOrganizations(req, {}, function () { done(); })).catch(done.fail);
+  });
+
     describe('buildOrganization branches', function() {
 
     it('creates organization when none exists and includes country characteristic', function(done) {
