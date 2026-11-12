@@ -25,6 +25,7 @@ const domeBlog = require('./controllers/domeBlog').domeBlog;
 const management = require('./controllers/management').management;
 const multer = require('multer');
 const tmf = require('./controllers/tmf').tmf();
+const redact = require('./lib/redact');
 const admin = require('./controllers/admin').admin();
 const stats = require('./controllers/stats').stats();
 const payment = require('./controllers/payment').payment();
@@ -131,7 +132,8 @@ app.use(function(req, res, next) {
 app.use(function(req, res, next) {
     req.id = uuidv4();
 
-    utils.log(logger, 'debug', req, 'Headers: ' + JSON.stringify(req.headers));
+    // CitCom: never log credentials (tokens, session cookies)
+    utils.log(logger, 'debug', req, 'Headers: ' + JSON.stringify(redact.headers(req.headers)));
     utils.log(logger, 'debug', req, 'Body: ' + JSON.stringify(req.body));
 
     onFinished(res, function(err, res) {
