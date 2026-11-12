@@ -460,6 +460,12 @@ config.endpoints.catalog.apiPath = process.env.BAE_LP_ENDPOINT_CATALOG_PATH || c
 config.endpoints.catalog.port = process.env.BAE_LP_ENDPOINT_CATALOG_PORT || config.endpoints.catalog.port;
 config.endpoints.catalog.host = process.env.BAE_LP_ENDPOINT_CATALOG_HOST || config.endpoints.catalog.host;
 
+// CitCom rulebook service (citcom-ds-rulebook): generates and checks the policies
+// and terms of every offer. Empty = the offer wizard and the guard are off.
+config.rulebook = {
+    url: process.env.BAE_LP_RULEBOOK_URL || ''
+};
+
 if (!!process.env.BAE_LP_ENDPOINT_CATALOG_SECURED) {
     config.endpoints.catalog.appSsl = process.env.BAE_LP_ENDPOINT_CATALOG_SECURED == 'true';
 }

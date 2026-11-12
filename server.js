@@ -566,6 +566,11 @@ for (var p in config.publicPaths) {
 
 //
 // BILLING ENGINE
+// CitCom offer wizard: classes and generation from the rulebook service
+const rulebookWizard = require('./controllers/rulebook/wizard');
+app.get('/rulebook/classes', authMiddleware.headerAuthentication, authMiddleware.checkOrganizations, authMiddleware.setPartyObj, failIfNotAuthenticated, rulebookWizard.classes);
+app.post('/rulebook/generate', authMiddleware.headerAuthentication, authMiddleware.checkOrganizations, authMiddleware.setPartyObj, failIfNotAuthenticated, rulebookWizard.generate);
+
 app.post('/billing/order', authMiddleware.headerAuthentication, authMiddleware.checkOrganizations, authMiddleware.setPartyObj, simulator.simulate)
 app.post('/billing/orderRaw', authMiddleware.headerAuthentication, authMiddleware.checkOrganizations, authMiddleware.setPartyObj, simulator.simulateRaw)
 

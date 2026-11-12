@@ -33,6 +33,7 @@ const url = require('url')
 const utils = require('./../../lib/utils')
 const { parse } = require('path')
 const searchEngine = require('../../lib/search').searchEngine
+const rulebookGuard = require('../rulebook/guard').guard
 
 var LIFE_CYCLE = 'lifecycleStatus';
 
@@ -1543,8 +1544,9 @@ const catalog = (function() {
 
     const validators = {
         GET: [validateAllowed, processQuery],
-        POST: [utils.validateLoggedIn, validateCreation],
-        PATCH: [utils.validateLoggedIn, validateUpdate],
+        // the rulebook guard runs last, on the body as the other validators left it
+        POST: [utils.validateLoggedIn, validateCreation, rulebookGuard],
+        PATCH: [utils.validateLoggedIn, validateUpdate, rulebookGuard],
         PUT: [utils.methodNotAllowed],
         DELETE: [utils.validateLoggedIn, isCategory, validateUpdate]
     };
